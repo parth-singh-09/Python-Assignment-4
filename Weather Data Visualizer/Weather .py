@@ -1,136 +1,104 @@
-# =================================================
-#  Name = Parth Singh
-#  Roll no = 2501730144
-#  Course = B.tech CSE (AI/ML)
-#  Section = D
-# **********Weather Data Visualizer***********
-# =================================================
-
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-filename = "weather.csv"
+def analyze_weather_data(filename="weather.csv"):
+    # STEP 1: CHECK FILE EXISTENCE
+    if not os.path.exists(filename):
+        print("⚠️ weather.csv not found!")
+        print("✅ Creating a sample weather.csv automatically...")
 
-# -------------------------------
-# ✅ STEP 1: CHECK FILE EXISTENCE
-# -------------------------------
+        sample = {
+            "Date": ["2025-01-01","2025-01-02","2025-01-03","2025-01-04"],
+            "Temperature": [25, 27, 26, 35],
+            "Rainfall": [5, 0, 10, 20],
+            "Humidity": [30, 65, 80, 95]
+        }
 
-if not os.path.exists(filename):
-    print("⚠️ weather.csv not found!")
-    print("✅ Creating a sample weather.csv automatically...")
+        df = pd.DataFrame(sample)
+        df.to_csv(filename, index=False)
+        print("✅ Sample weather.csv created!")
 
-    sample = {
-        "Date": ["2025-01-01","2025-01-02","2025-01-03","2025-01-04"],
-        "Temperature": [25, 27, 26, 28],
-        "Rainfall": [5, 0, 10, 2],
-        "Humidity": [70, 65, 80, 75]
-    }
+    # STEP 2: CHECK EMPTY FILE
+    if os.path.getsize(filename) == 0:
+        print("❌ CSV file is EMPTY!")
+        print("✅ Add data or delete file and run again to generate sample")
+        return
 
-    df = pd.DataFrame(sample)
-    df.to_csv(filename, index=False)
-    print("✅ Sample weather.csv created!")
+    # STEP 3: LOAD DATA
+    data = pd.read_csv(filename)
+    print("✅ Data Loaded Successfully!")
+    print(data.head())
 
-# -------------------------------
-# ✅ STEP 2: CHECK IF FILE EMPTY
-# -------------------------------
+    # STEP 4: CLEANING
+    data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+    data = data.dropna()
+    data = data[["Date", "Temperature", "Rainfall", "Humidity"]]
 
-if os.path.getsize(filename) == 0:
-    print("❌ CSV file is EMPTY!")
-    print("✅ Add data or delete file and run again to generate sample")
-    exit()
+    print("✅ Data Cleaned!")
 
-# -------------------------------
-# ✅ STEP 3: LOAD THE DATA
-# -------------------------------
+    # STEP 5: STATS
+    mean_temp = np.mean(data["Temperature"])
+    max_temp = np.max(data["Temperature"])
+    min_temp = np.min(data["Temperature"])
+    std_temp = np.std(data["Temperature"])
 
-data = pd.read_csv(filename)
-print("✅ Data Loaded Successfully!")
-print(data.head())
+    print("\n🌡 Temperature Summary:")
+    print("Average:", mean_temp)
+    print("Max:", max_temp)
+    print("Min:", min_temp)
+    print("Std Dev:", std_temp)
 
-# -------------------------------
-# ✅ STEP 4: DATA CLEANING
-# -------------------------------
+    # STEP 6: VISUALIZATION
+    plt.figure()
+    plt.plot(data["Date"], data["Temperature"])
+    plt.title("Daily Temperature Trend")
+    plt.xlabel("Date")
+    plt.ylabel("Temperature (°C)")
+    plt.savefig("temperature_trend.png")
+    plt.show()
 
-data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
-data = data.dropna()
-data = data[["Date", "Temperature", "Rainfall", "Humidity"]]
+    monthly_rain = data.groupby(data["Date"].dt.month)["Rainfall"].sum()
+    plt.figure()
+    monthly_rain.plot(kind="bar")
+    plt.title("Monthly Rainfall")
+    plt.xlabel("Month")
+    plt.ylabel("Rainfall (mm)")
+    plt.savefig("monthly_rainfall.png")
+    plt.show()
 
-print("✅ Data Cleaned!")
+    plt.figure()
+    plt.scatter(data["Temperature"], data["Humidity"])
+    plt.title("Humidity vs Temperature")
+    plt.xlabel("Temperature")
+    plt.ylabel("Humidity")
+    plt.savefig("humidity_vs_temperature.png")
+    plt.show()
 
-# -------------------------------
-# ✅ STEP 5: STATISTICS
-# -------------------------------
+    # STEP 7: GROUPING
+    monthly_stats = data.groupby(data["Date"].dt.month).agg({
+        "Temperature": ["mean", "max", "min"],
+        "Rainfall": "sum"
+    })
 
-mean_temp = np.mean(data["Temperature"])
-max_temp = np.max(data["Temperature"])
-min_temp = np.min(data["Temperature"])
-std_temp = np.std(data["Temperature"])
+    print("\n📊 Monthly Summary:\n", monthly_stats)
 
-print("\n🌡 Temperature Summary:")
-print("Average:", mean_temp)
-print("Max:", max_temp)
-print("Min:", min_temp)
-print("Std Dev:", std_temp)
+    # STEP 8: EXPORT
+    data.to_csv("cleaned_weather.csv", index=False)
 
-# -------------------------------
-# ✅ STEP 6: VISUALIZATION
-# -------------------------------
+    with open("summary.txt", "w") as f:
+        f.write("Weather Data Summary\n")
+        f.write(f"Average Temp: {mean_temp}\n")
+        f.write(f"Max Temp: {max_temp}\n")
+        f.write(f"Min Temp: {min_temp}\n")
 
-# Line Chart
-plt.figure()
-plt.plot(data["Date"], data["Temperature"])
-plt.title("Daily Temperature Trend")
-plt.xlabel("Date")
-plt.ylabel("Temperature (°C)")
-plt.savefig("temperature_trend.png")
-plt.show()
+    print("\n✅ All Done!")
+    print("✅ Cleaned CSV Saved")
+    print("✅ Plots Saved")
+    print("✅ Summary Created")
 
-# Bar Chart
-monthly_rain = data.groupby(data["Date"].dt.month)["Rainfall"].sum()
-plt.figure()
-monthly_rain.plot(kind="bar")
-plt.title("Monthly Rainfall")
-plt.xlabel("Month")
-plt.ylabel("Rainfall (mm)")
-plt.savefig("monthly_rainfall.png")
-plt.show()
 
-# Scatter Plot
-plt.figure()
-plt.scatter(data["Temperature"], data["Humidity"])
-plt.title("Humidity vs Temperature")
-plt.xlabel("Temperature")
-plt.ylabel("Humidity")
-plt.savefig("humidity_vs_temperature.png")
-plt.show()
-
-# -------------------------------
-# ✅ STEP 7: GROUPING
-# -------------------------------
-
-monthly_stats = data.groupby(data["Date"].dt.month).agg({
-    "Temperature": ["mean", "max", "min"],
-    "Rainfall": "sum"
-})
-
-print("\n📊 Monthly Summary:\n", monthly_stats)
-
-# -------------------------------
-# ✅ STEP 8: EXPORT
-# -------------------------------
-
-data.to_csv("cleaned_weather.csv", index=False)
-
-with open("summary.txt", "w") as f:
-    f.write("Weather Data Summary\n")
-    f.write(f"Average Temp: {mean_temp}\n")
-    f.write(f"Max Temp: {max_temp}\n")
-    f.write(f"Min Temp: {min_temp}\n")
-
-print("\n✅ All Done!")
-print("✅ Cleaned CSV Saved")
-print("✅ Plots Saved")
-print("✅ Summary Created")
+# ✅ Run only when script executed
+if __name__ == "__main__":
+    analyze_weather_data()
